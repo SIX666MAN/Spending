@@ -184,6 +184,79 @@
         .modal-btn.confirm { color: #ff4c4c; border-color: #ff4c4c; }
         .modal-btn.confirm:hover { background: rgba(255, 76, 76, 0.1); }
 
+        /* =========================================
+           [行動裝置響應式補丁 - iOS / Mobile 専用] 
+           螢幕寬度小於 768px 時才會觸發，絕對保護 PC 排版
+           ========================================= */
+        @media (max-width: 768px) {
+            /* 1. 解除全域高度鎖定，允許手機正常上下滑動 */
+            body {
+                overflow-y: auto !important; 
+                height: auto !important;
+                padding-bottom: 40px; /* 底部留白避免被 Safari 工具列擋住 */
+            }
+            
+            /* 2. 隱藏不必要 PC 視窗控制列 */
+            .drag-zone {
+                display: none !important; 
+            }
+            
+            /* 3. 將左右雙欄改為單欄上下堆疊 */
+            .system-container {
+                grid-template-columns: 1fr !important; 
+                height: auto !important;
+                padding: 10px !important;
+            }
+            
+            /* 4. 模組順序調換與懸浮設定 */
+            .dashboard-section {
+                order: 1; /* 讓右側的儀表板跑到最上面 */
+                position: sticky;
+                top: 10px;
+                z-index: 100;
+                /* 加入現代感的毛玻璃懸浮特效 */
+                background: rgba(var(--card-bg-rgb), 0.85) !important;
+                backdrop-filter: blur(12px);
+                -webkit-backdrop-filter: blur(12px);
+                box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+                margin-bottom: 10px;
+                padding: 15px !important;
+            }
+            
+            .input-section {
+                order: 2; /* 讓左側的輸入區跑到下面 */
+                overflow-y: visible !important; /* 解除內部滾動，交由全域滑動 */
+                padding-right: 0 !important;
+            }
+
+            .net-cash-display {
+                font-size: 2.8rem !important; /* 稍微縮小總金額字體避免破版 */
+                margin: 10px 0 !important;
+            }
+
+            /* 5. 針對輸入列進行空間壓縮與換行 */
+            .entry-row, .entry-row.annual-mode, .entry-row.goal-mode {
+                display: flex !important;
+                flex-wrap: wrap;
+                padding-bottom: 12px;
+                border-bottom: 1px dashed var(--border-light);
+            }
+            
+            .input-group {
+                flex: 0 0 100%; /* 讓名稱與備註獨立佔滿第一排 */
+                margin-bottom: 8px;
+            }
+            
+            .sys-input, .sys-select {
+                flex: 1; /* 第二排的數字與選單平分剩下的空間 */
+                min-width: 60px;
+            }
+            
+            .action-group {
+                flex: 0 0 auto; /* 按鈕群保持原大小，靠右對齊 */
+                margin-left: auto;
+            }
+        }
     </style>
 </head>
 <body>
@@ -502,6 +575,8 @@
         }
 
         loadData();
+        
+
     </script>
 </body>
 </html>
