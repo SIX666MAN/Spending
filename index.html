@@ -3,42 +3,48 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>WORKFLOW // 財務中樞 v5.3</title>
+    <title>WORKFLOW // 財務中樞 v5.5</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;1,300;1,400&family=Inter:wght@300;400&family=Syncopate:wght@400;700&display=swap" rel="stylesheet">
     
     <script>
-        // 【記憶體前置掛載】在畫面渲染前，瞬間套用主題避免閃爍
-        try {
-            let preCache = localStorage.getItem('workflow_finance_cloud_cache') || localStorage.getItem('workflow_finance_data_v4');
-            if(preCache) {
-                let parsed = JSON.parse(preCache);
-                if(parsed.theme && parsed.theme !== 'pink') { document.documentElement.setAttribute('data-theme', parsed.theme); }
-            }
+        // 記憶體前置掛載：防止主題閃爍
+        try { 
+            let preCache = localStorage.getItem('workflow_finance_cloud_cache') || localStorage.getItem('workflow_finance_data_v4'); 
+            if(preCache) { 
+                let parsed = JSON.parse(preCache); 
+                if(parsed.theme && parsed.theme !== 'pink') { document.documentElement.setAttribute('data-theme', parsed.theme); } 
+            } 
         } catch(e){}
     </script>
 
     <style>
-        :root {
-            --bg-color: #FFF5F7; --card-bg: #FFFFFF; --card-bg-rgb: 255, 255, 255;
-            --text-main: #594A4E; --text-mute: #B89F9F; --accent: #FF8DA1;
-            --border-light: rgba(255, 141, 161, 0.3);
-            --font-serif: 'Cormorant Garamond', serif; --font-display: 'Syncopate', sans-serif; --font-body: 'Inter', sans-serif;
+        /* ==================== [ 核心變數與主題 ] ==================== */
+        :root { 
+            --bg-color: #FFF5F7; --card-bg: #FFFFFF; --card-bg-rgb: 255, 255, 255; 
+            --text-main: #594A4E; --text-mute: #B89F9F; --accent: #FF8DA1; 
+            --border-light: rgba(255, 141, 161, 0.3); 
+            --font-serif: 'Cormorant Garamond', serif; --font-display: 'Syncopate', sans-serif; --font-body: 'Inter', sans-serif; 
         }
-        [data-theme="dark"] {
-            --bg-color: #0d0d0d; --card-bg: #141414; --card-bg-rgb: 20, 20, 20;
-            --text-main: #E0E0E0; --text-mute: #666666; --accent: #4DD0E1;
-            --border-light: rgba(255, 255, 255, 0.1);
+        [data-theme="dark"] { 
+            --bg-color: #0d0d0d; --card-bg: #141414; --card-bg-rgb: 20, 20, 20; 
+            --text-main: #E0E0E0; --text-mute: #666666; --accent: #4DD0E1; 
+            --border-light: rgba(255, 255, 255, 0.1); 
         }
-        [data-theme="shinobi"] {
-            --bg-color: #1a1817; --card-bg: #22201e; --card-bg-rgb: 34, 32, 30;
-            --text-main: #d3c7b6; --text-mute: #7a7269; --accent: #b3362a;
+        [data-theme="shinobi"] { 
+            --bg-color: #1a1817; --card-bg: #22201e; --card-bg-rgb: 34, 32, 30; 
+            --text-main: #d3c7b6; --text-mute: #7a7269; --accent: #b3362a; 
             --border-light: rgba(179, 54, 42, 0.2); 
         }
 
         * { box-sizing: border-box; margin: 0; padding: 0; }
-        body { background-color: var(--bg-color); color: var(--text-main); font-family: var(--font-body); font-weight: 300; height: 100vh; display: flex; flex-direction: column; overflow: hidden; transition: background-color 0.5s ease; }
+        body { 
+            background-color: var(--bg-color); color: var(--text-main); 
+            font-family: var(--font-body); font-weight: 300; height: 100vh; 
+            display: flex; flex-direction: column; overflow: hidden; transition: background-color 0.5s ease; 
+        }
+
         .drag-zone { width: 100%; height: 35px; min-height: 35px; -webkit-app-region: drag; display: flex; justify-content: flex-end; align-items: center; padding: 0 15px; position: relative; z-index: 10; }
         .window-controls button { -webkit-app-region: no-drag; background: transparent; border: none; color: var(--text-mute); font-family: var(--font-body); font-size: 0.75rem; cursor: pointer; padding: 5px 10px; transition: 0.3s; }
         .window-controls button:hover { color: var(--text-main); }
@@ -47,47 +53,65 @@
         .system-container { display: grid; grid-template-columns: 1.6fr 1fr; gap: 20px; height: calc(100vh - 35px); padding: 0 20px 20px 20px; max-width: 1200px; margin: 0 auto; width: 100%; }
         .panel { background: var(--card-bg); border: 1px solid var(--border-light); border-radius: 8px; padding: 25px 30px; transition: 0.3s; display: flex; flex-direction: column; }
         .input-section { overflow-y: auto; padding-right: 15px; scroll-behavior: smooth; }
-        .dashboard-section { justify-content: space-between; }
+        .dashboard-section { justify-content: flex-start; gap: 20px; }
+        
         .header { display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 25px; padding-bottom: 15px; border-bottom: 1px solid var(--border-light); }
         .header h1 { font-family: var(--font-display); font-size: 0.9rem; letter-spacing: 3px; color: var(--text-mute); margin: 0; }
         .header span { color: var(--accent); }
         .sys-select { background: transparent; border: 1px solid var(--border-light); color: var(--text-mute); font-family: var(--font-display); font-size: 0.6rem; padding: 4px 8px; outline: none; cursor: pointer; border-radius: 4px; letter-spacing: 1px; }
         
-        /* 標題與折疊設計 - 電腦端預設 */
-        .section-title { font-family: var(--font-display); font-size: 0.75rem; color: var(--text-main); letter-spacing: 2px; margin-bottom: 15px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px dashed var(--border-light); padding-bottom: 8px; margin-top: 20px; scroll-margin-top: 30px; }
+        /* ==================== [ 標題列與折疊開關 ] ==================== */
+        .section-title { 
+            font-family: var(--font-display); font-size: 0.75rem; color: var(--text-main); letter-spacing: 2px; 
+            margin-bottom: 15px; display: flex; justify-content: space-between; align-items: center; 
+            border-bottom: 1px dashed var(--border-light); padding-bottom: 8px; margin-top: 20px; scroll-margin-top: 30px; 
+        }
         .section-title:first-child { margin-top: 0; }
-        .section-title .left-group { display: flex; align-items: center; gap: 8px; }
+        .section-title .left-group { display: flex; align-items: center; gap: 6px; }
         .section-title .right-group { display: flex; gap: 10px; align-items: center; }
         .section-title .subtotal { font-family: var(--font-serif); font-size: 0.9rem; font-style: italic; color: var(--accent); white-space: nowrap; }
-        .btn-toggle-sec { cursor: pointer; background: transparent; border: 1px solid var(--border-light); color: var(--text-mute); border-radius: 4px; padding: 2px 6px; font-size: 0.6rem; transition: 0.3s; white-space: nowrap; }
-        .btn-toggle-sec:hover { color: var(--accent); border-color: var(--accent); }
         
-        .dynamic-list { display: flex; flex-direction: column; gap: 12px; margin-bottom: 10px; transition: max-height 0.3s ease-out; overflow: hidden; }
+        /* 美化版 SVG 折疊按鈕 */
+        .btn-toggle-sec { 
+            background: transparent; border: 1px solid transparent; color: var(--text-mute); 
+            border-radius: 4px; padding: 2px; cursor: pointer; transition: 0.3s; 
+            display: flex; align-items: center; justify-content: center;
+        }
+        .btn-toggle-sec:hover { color: var(--accent); background: rgba(184, 159, 159, 0.1); }
+        .btn-toggle-sec svg { width: 14px; height: 14px; transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1); }
+        .btn-toggle-sec.collapsed svg { transform: rotate(-90deg); } /* 折疊時向右旋轉 */
+        
+        /* 修復坍縮 Bug：移除 overflow:hidden 與 transition */
+        .dynamic-list { display: flex; flex-direction: column; gap: 12px; margin-bottom: 10px; }
         .dynamic-list.collapsed { display: none; }
 
+        /* ==================== [ 輸入項目與表單 ] ==================== */
         .entry-row { display: grid; grid-template-columns: 2fr 1.2fr 0.8fr auto; gap: 8px; align-items: center; animation: fadeIn 0.3s ease-out; }
         .entry-row.annual-mode { grid-template-columns: 2fr 1.2fr 1fr 0.8fr auto; }
         .entry-row.goal-mode { grid-template-columns: 1.5fr 1fr 1fr 0.5fr 0.8fr auto; }
         .input-group { display: flex; flex-direction: column; gap: 4px; }
         .action-group { display: flex; gap: 5px; align-items: center; }
         @keyframes fadeIn { from { opacity: 0; transform: translateY(-5px); } to { opacity: 1; transform: translateY(0); } }
+        
         .sys-input { background: transparent; border: none; border-bottom: 1px solid var(--border-light); color: var(--text-main); padding: 5px 2px; font-family: var(--font-body); font-size: 0.85rem; outline: none; width: 100%; }
         .note-input { font-size: 0.65rem; color: var(--text-mute); border-bottom: 1px dashed transparent; display: none; }
         .note-input.active { display: block; }
+        
         .btn-action { background: transparent; border: 1px solid var(--border-light); color: var(--text-mute); padding: 4px 10px; cursor: pointer; font-family: var(--font-display); font-size: 0.65rem; letter-spacing: 1px; display: flex; align-items: center; gap: 5px; border-radius: 4px; white-space: nowrap; }
         .btn-icon { padding: 4px; border-color: transparent; font-size: 0.85rem; }
         .btn-del { border-color: transparent; color: var(--text-mute); font-size: 1rem; padding: 0 5px; background: transparent; cursor: pointer;}
         
-        .summary-panel { text-align: center; flex-grow: 1; display: flex; flex-direction: column; justify-content: center; }
-        .net-cash-display { font-family: var(--font-serif); font-size: 3.5rem; font-style: italic; font-weight: 300; line-height: 1; color: var(--accent); margin: 20px 0; font-variant-numeric: tabular-nums; letter-spacing: -1px; transition: color 0.3s; }
+        /* ==================== [ 右側儀表板 ] ==================== */
+        .summary-panel { text-align: center; display: flex; flex-direction: column; justify-content: center; }
+        .net-cash-display { font-family: var(--font-serif); font-size: 3.2rem; font-style: italic; font-weight: 300; line-height: 1; color: var(--accent); margin: 15px 0; font-variant-numeric: tabular-nums; letter-spacing: -1px; transition: color 0.3s; }
         .net-cash-display.negative { color: #ff4c4c; }
         .currency-rates { font-size: 0.65rem; color: var(--text-mute); margin-top: auto; padding-top: 15px; border-top: 1px solid var(--border-light); font-family: var(--font-display); letter-spacing: 1px; text-align: center; display: flex; flex-direction: column; gap: 5px; }
-        .controls-row { display: flex; gap: 10px; justify-content: center; margin-bottom: 20px; }
+        .controls-row { display: flex; gap: 10px; justify-content: center; margin-bottom: 10px; }
         #sync-status { font-family: var(--font-display); font-size: 0.55rem; color: var(--text-mute); margin-top: 5px; opacity: 0.6; }
 
         .mobile-nav { display: none; }
 
-        /* 模態視窗 */
+        /* ==================== [ 模態視窗 ] ==================== */
         .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.4); backdrop-filter: blur(8px); display: flex; justify-content: center; align-items: center; z-index: 1000; opacity: 0; pointer-events: none; transition: 0.4s; }
         .modal-overlay.active { opacity: 1; pointer-events: auto; }
         .modal-box { background: rgba(var(--card-bg-rgb), 0.85); border: 1px solid var(--border-light); padding: 40px; width: 85%; max-width: 400px; text-align: center; border-radius: 12px; transform: translateY(30px); transition: 0.4s; }
@@ -98,67 +122,37 @@
         .modal-btn { background: transparent; border: 1px solid var(--border-light); color: var(--text-mute); font-family: var(--font-body); font-size: 0.8rem; padding: 10px 20px; cursor: pointer; transition: 0.3s; width: 120px; border-radius: 6px; }
         .modal-btn.confirm { color: #ff4c4c; border-color: #ff4c4c; }
 
-        /* =========================================
-           [行動裝置響應式補丁 - iOS / Mobile 専用] 
-           ========================================= */
+        /* ==================== [ 行動端響應式修復 ] ==================== */
         @media (max-width: 768px) {
             body { overflow-y: auto !important; height: auto !important; padding-bottom: 60px; }
             .drag-zone { display: none !important; }
             .system-container { grid-template-columns: 1fr !important; height: auto !important; padding: 10px !important; }
             
             .dashboard-section {
-                order: 1; position: sticky; top: 10px; z-index: 100;
+                order: 1; position: sticky; top: 10px; z-index: 100; gap: 10px;
                 background: rgba(var(--card-bg-rgb), 0.85) !important;
                 backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
                 box-shadow: 0 10px 30px rgba(0,0,0,0.1); margin-bottom: 10px; padding: 15px !important;
             }
             .input-section { order: 2; overflow-y: visible !important; padding-right: 0 !important; }
-            .net-cash-display { font-size: 2.8rem !important; margin: 10px 0 !important; }
+            .net-cash-display { font-size: 2.2rem !important; margin: 5px 0 !important; }
 
-            /* 手機版：標題排版完美雙層解構，防止文字斷行擠壓 */
-            .section-title {
-                flex-direction: column !important;
-                align-items: flex-start !important;
-                scroll-margin-top: 240px !important; /* 精準錨點磁場：避開頂部儀表板 */
-                gap: 10px;
-            }
-            .section-title .right-group {
-                width: 100%;
-                justify-content: space-between !important;
-                padding-top: 8px;
-                border-top: 1px dotted var(--border-light);
-            }
+            .section-title { flex-direction: column !important; align-items: flex-start !important; scroll-margin-top: 280px !important; gap: 10px; }
+            .section-title .right-group { width: 100%; justify-content: space-between !important; padding-top: 8px; border-top: 1px dotted var(--border-light); }
 
-            /* 手機版：單筆明細輸入框佈局重構 */
-            .entry-row, .entry-row.annual-mode, .entry-row.goal-mode { 
-                display: flex !important; flex-wrap: wrap; padding-bottom: 12px; border-bottom: 1px dashed var(--border-light); gap: 8px;
-            }
+            .entry-row, .entry-row.annual-mode, .entry-row.goal-mode { display: flex !important; flex-wrap: wrap; padding-bottom: 12px; border-bottom: 1px dashed var(--border-light); gap: 8px; }
             .input-group { flex: 0 0 100% !important; margin-bottom: 0; }
-            
             .sys-input, .sys-select { flex: 1 1 40% !important; min-width: 80px; }
-            
-            /* 手機版：強制將「日期框」獨立一行，絕不擠壓消失 */
             input[type="date"] { flex: 0 0 100% !important; margin-top: 4px; }
-            
-            /* 手機版：控制按鈕永遠在右下角 */
             .action-group { flex: 0 0 100% !important; justify-content: flex-end; margin-top: 4px; }
 
-            /* 手機版快速導航列 (符號統一) */
             .mobile-nav {
-                display: flex; justify-content: space-around; align-items: center;
-                position: fixed; bottom: 0; left: 0; width: 100%; height: 50px;
-                background: rgba(var(--card-bg-rgb), 0.8);
-                backdrop-filter: blur(15px); -webkit-backdrop-filter: blur(15px);
-                border-top: 1px solid var(--border-light); z-index: 200;
-                padding: 0 10px;
+                display: flex; justify-content: space-around; align-items: center; position: fixed; bottom: 0; left: 0; width: 100%; height: 50px;
+                background: rgba(var(--card-bg-rgb), 0.8); backdrop-filter: blur(15px); -webkit-backdrop-filter: blur(15px); border-top: 1px solid var(--border-light); z-index: 200; padding: 0 5px;
             }
-            .nav-item {
-                font-family: var(--font-display); font-size: 0.6rem; color: var(--text-mute);
-                text-decoration: none; padding: 5px 10px; transition: 0.3s;
-                display: flex; flex-direction: column; align-items: center; gap: 3px;
-            }
+            .nav-item { font-family: var(--font-display); font-size: 0.55rem; color: var(--text-mute); text-decoration: none; padding: 5px; transition: 0.3s; display: flex; flex-direction: column; align-items: center; gap: 3px; }
             .nav-item:hover, .nav-item:active { color: var(--accent); }
-            .nav-icon { font-size: 0.9rem; }
+            .nav-icon { font-size: 0.85rem; }
         }
     </style>
 </head>
@@ -172,7 +166,6 @@
     </div>
 
     <div class="system-container">
-        
         <div class="panel input-section">
             <div class="header">
                 <h1>SYS <span>// 財務中樞</span></h1>
@@ -188,91 +181,99 @@
 
             <div class="section-title" id="sec-income">
                 <div class="left-group">
-                    <button class="btn-toggle-sec" onclick="toggleSec('income')">[ ± ]</button>
+                    <button class="btn-toggle-sec" onclick="toggleSec('income', this)">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg>
+                    </button>
                     <span>[01] 收入 (INCOME)</span>
                 </div>
-                <div class="right-group">
-                    <span class="subtotal" id="sub-income">0.00</span>
-                    <button class="btn-action" onclick="addEntry('income')">+ 追加</button>
-                </div>
+                <div class="right-group"><span class="subtotal" id="sub-income">0.00</span><button class="btn-action" onclick="addEntry('income')">+ 追加</button></div>
             </div>
             <div class="dynamic-list" id="income-list"></div>
 
             <div class="section-title" id="sec-flex">
                 <div class="left-group">
-                    <button class="btn-toggle-sec" onclick="toggleSec('flex')">[ ± ]</button>
+                    <button class="btn-toggle-sec" onclick="toggleSec('flex', this)">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg>
+                    </button>
                     <span>[02] 非固定花銷 (FLEXIBLE)</span>
                 </div>
-                <div class="right-group">
-                    <span class="subtotal" id="sub-flex">0.00</span>
-                    <button class="btn-action" onclick="addEntry('flex')">+ 追加</button>
-                </div>
+                <div class="right-group"><span class="subtotal" id="sub-flex">0.00</span><button class="btn-action" onclick="addEntry('flex')">+ 追加</button></div>
             </div>
             <div class="dynamic-list" id="flex-list"></div>
 
             <div class="section-title" id="sec-subs">
                 <div class="left-group">
-                    <button class="btn-toggle-sec" onclick="toggleSec('subs')">[ ± ]</button>
+                    <button class="btn-toggle-sec" onclick="toggleSec('subs', this)">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg>
+                    </button>
                     <span>[03] 固定花銷 (SUBS)</span>
                 </div>
-                <div class="right-group">
-                    <span class="subtotal" id="sub-subs">0.00</span>
-                    <button class="btn-action" onclick="addEntry('subs')">+ 追加</button>
-                </div>
+                <div class="right-group"><span class="subtotal" id="sub-subs">0.00</span><button class="btn-action" onclick="addEntry('subs')">+ 追加</button></div>
             </div>
             <div class="dynamic-list" id="subs-list"></div>
 
             <div class="section-title" id="sec-annual">
                 <div class="left-group">
-                    <button class="btn-toggle-sec" onclick="toggleSec('annual')">[ ± ]</button>
+                    <button class="btn-toggle-sec" onclick="toggleSec('annual', this)">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg>
+                    </button>
                     <span>[04] 每年花銷 (ANNUAL)</span>
                 </div>
-                <div class="right-group">
-                    <span class="subtotal" id="sub-annual">0.00</span>
-                    <button class="btn-action" onclick="addEntry('annual')">+ 追加</button>
-                </div>
+                <div class="right-group"><span class="subtotal" id="sub-annual">0.00</span><button class="btn-action" onclick="addEntry('annual')">+ 追加</button></div>
             </div>
             <div class="dynamic-list" id="annual-list"></div>
 
             <div class="section-title" id="sec-invest">
                 <div class="left-group">
-                    <button class="btn-toggle-sec" onclick="toggleSec('invest')">[ ± ]</button>
+                    <button class="btn-toggle-sec" onclick="toggleSec('invest', this)">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg>
+                    </button>
                     <span>[05] 股票投資 (INVEST)</span>
                 </div>
-                <div class="right-group">
-                    <span class="subtotal" id="sub-invest">0.00</span>
-                    <button class="btn-action" onclick="addEntry('invest')">+ 追加</button>
-                </div>
+                <div class="right-group"><span class="subtotal" id="sub-invest">0.00</span><button class="btn-action" onclick="addEntry('invest')">+ 追加</button></div>
             </div>
             <div class="dynamic-list" id="invest-list"></div>
 
             <div class="section-title" id="sec-goals">
                 <div class="left-group">
-                    <button class="btn-toggle-sec" onclick="toggleSec('goals')">[ ± ]</button>
+                    <button class="btn-toggle-sec" onclick="toggleSec('goals', this)">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg>
+                    </button>
                     <span>[06] 目標儲蓄 (GOALS)</span>
                 </div>
-                <div class="right-group">
-                    <span class="subtotal" id="sub-goals">0.00</span>
-                    <button class="btn-action" onclick="addEntry('goals')">+ 追加</button>
-                </div>
+                <div class="right-group"><span class="subtotal" id="sub-goals">0.00</span><button class="btn-action" onclick="addEntry('goals')">+ 追加</button></div>
             </div>
             <div class="dynamic-list" id="goals-list"></div>
+
+            <div class="section-title" id="sec-accounts">
+                <div class="left-group">
+                    <button class="btn-toggle-sec" onclick="toggleSec('accounts', this)">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg>
+                    </button>
+                    <span>[07] 口座・資產 (ACCOUNTS)</span>
+                </div>
+                <div class="right-group"><span class="subtotal" id="sub-accounts" style="opacity:0.5;">[總資產同步區]</span><button class="btn-action" onclick="addEntry('accounts')">+ 追加</button></div>
+            </div>
+            <div class="dynamic-list" id="accounts-list"></div>
         </div>
 
         <div class="panel dashboard-section">
             <div class="controls-row">
                 <select id="base-currency" class="sys-select" onchange="updateData(this, null, null, null)" style="flex-grow: 1; text-align: center;">
-                    <option value="TWD">基準: TWD (台幣)</option>
-                    <option value="JPY">基準: JPY (日圓)</option>
-                    <option value="USD">基準: USD (美金)</option>
-                    <option value="RMB">基準: RMB (人民幣)</option>
+                    <option value="TWD">基準: TWD (台幣)</option><option value="JPY">基準: JPY (日圓)</option>
+                    <option value="USD">基準: USD (美金)</option><option value="RMB">基準: RMB (人民幣)</option>
                 </select>
                 <button class="btn-action" onclick="requestResetMonthly()">↻ 結算同步</button>
             </div>
 
             <div class="summary-panel">
-                <span style="font-family: var(--font-display); font-size: 0.85rem; color: var(--text-mute); letter-spacing: 2px;">淨現金流<br><span style="font-size: 0.6rem; opacity: 0.7;">雲端同步中</span></span>
+                <span style="font-family: var(--font-display); font-size: 0.85rem; color: var(--text-mute); letter-spacing: 2px;">淨現金流<br><span style="font-size: 0.6rem; opacity: 0.7;">本月可自由支配預算</span></span>
                 <div class="net-cash-display" id="net-cash">0.00</div>
+            </div>
+
+            <div class="summary-panel" style="border-top: 1px dashed var(--border-light); padding-top: 15px;">
+                <span style="font-family: var(--font-display); font-size: 0.85rem; color: var(--text-mute); letter-spacing: 2px;">總資產 (NET WORTH)<br><span style="font-size: 0.6rem; opacity: 0.7;">[07] 實體帳戶與資產現值</span></span>
+                <div class="net-cash-display" id="total-assets" style="font-size: 2.6rem;">0.00</div>
             </div>
 
             <div class="currency-rates">
@@ -288,12 +289,13 @@
         <a href="#sec-subs" class="nav-item" onclick="smoothScroll('sec-subs')"><span class="nav-icon">↻</span>SUB</a>
         <a href="#sec-invest" class="nav-item" onclick="smoothScroll('sec-invest')"><span class="nav-icon">▲</span>INV</a>
         <a href="#sec-goals" class="nav-item" onclick="smoothScroll('sec-goals')"><span class="nav-icon">★</span>GOAL</a>
+        <a href="#sec-accounts" class="nav-item" onclick="smoothScroll('sec-accounts')"><span class="nav-icon">🏦</span>ACC</a>
     </div>
 
     <div class="modal-overlay" id="sys-modal">
         <div class="modal-box">
             <div class="modal-title">SYSTEM // 確認</div>
-            <div class="modal-msg">確定要執行「月度結算」並強制同步嗎？<br><br><span style="font-size:0.8rem; color:var(--text-mute);">此操作會將本月明細封存，清空非固定花銷，並強制覆寫雲端。</span></div>
+            <div class="modal-msg">確定要執行「月度結算」並強制同步嗎？<br><br><span style="font-size:0.8rem; color:var(--text-mute);">此操作會將本月明細封存，清空 [收入] 與 [非固定花銷]，並強制覆寫雲端。口座餘額將保留以追蹤總資產。</span></div>
             <div class="modal-btns">
                 <button class="modal-btn" id="modal-btn-cancel">取消</button>
                 <button class="modal-btn confirm" id="modal-btn-confirm">確認執行</button>
@@ -303,45 +305,73 @@
 
     <script>
         const GAS_URL = "https://script.google.com/macros/s/AKfycbzztgTY5cA_Z2zE_blLiXuNxpuM5p5srVhRSEYZKqeq00v-nu1TNzhdmjO5lJMweV0K/exec";
-        
         let isDataReadyToSave = false;
+        let saveTimeout;
 
-        try { const { ipcRenderer } = require('electron'); document.getElementById('btn-minimize').addEventListener('click', () => ipcRenderer.send('minimize-window')); document.getElementById('btn-close').addEventListener('click', () => ipcRenderer.send('close-window')); } catch(e) {}
+        try { 
+            const { ipcRenderer } = require('electron'); 
+            document.getElementById('btn-minimize').addEventListener('click', () => ipcRenderer.send('minimize-window')); 
+            document.getElementById('btn-close').addEventListener('click', () => ipcRenderer.send('close-window')); 
+        } catch(e) {}
 
         const themeSelector = document.getElementById('theme-selector');
-        themeSelector.addEventListener('change', (e) => {
-            document.documentElement.setAttribute('data-theme', e.target.value === 'pink' ? '' : e.target.value);
-            systemData.theme = e.target.value;
-            saveData();
+        themeSelector.addEventListener('change', (e) => { 
+            document.documentElement.setAttribute('data-theme', e.target.value === 'pink' ? '' : e.target.value); 
+            systemData.theme = e.target.value; 
+            saveData(); 
         });
 
-        const exchangeRates = { TWD: { TWD: 1, JPY: 4.76, USD: 0.03125, RMB: 0.227 }, JPY: { TWD: 0.21, JPY: 1, USD: 0.0065, RMB: 0.047 }, USD: { TWD: 32.0, JPY: 150.0, USD: 1, RMB: 7.24 }, RMB: { TWD: 4.40, JPY: 21.0, USD: 0.138, RMB: 1 } };
-        let systemData = { theme: 'pink', baseCurrency: 'TWD', income: [], flex: [], subs: [], annual: [], invest: [], goals: [] };
+        const exchangeRates = { 
+            TWD: { TWD: 1, JPY: 4.76, USD: 0.03125, RMB: 0.227 }, 
+            JPY: { TWD: 0.21, JPY: 1, USD: 0.0065, RMB: 0.047 }, 
+            USD: { TWD: 32.0, JPY: 150.0, USD: 1, RMB: 7.24 }, 
+            RMB: { TWD: 4.40, JPY: 21.0, USD: 0.138, RMB: 1 } 
+        };
+        
+        let systemData = { theme: 'pink', baseCurrency: 'TWD', income: [], flex: [], subs: [], annual: [], invest: [], goals: [], accounts: [] };
 
         function generateId() { return Math.random().toString(36).substr(2, 9); }
-        function createSelectHTML(selectedCurrency, type, id) {
-            const currencies = ['TWD', 'JPY', 'USD', 'RMB'];
-            return `<select class="sys-select" onchange="updateData(this, 'currency', '${type}', '${id}')">${currencies.map(c => `<option value="${c}" ${c === selectedCurrency ? 'selected' : ''}>${c}</option>`).join('')}</select>`;
+        
+        function createSelectHTML(selectedCurrency, type, id) { 
+            const currencies = ['TWD', 'JPY', 'USD', 'RMB']; 
+            return `<select class="sys-select" onchange="updateData(this, 'currency', '${type}', '${id}')">${currencies.map(c => `<option value="${c}" ${c === selectedCurrency ? 'selected' : ''}>${c}</option>`).join('')}</select>`; 
         }
-
-        function toggleSec(type) { document.getElementById(type + '-list').classList.toggle('collapsed'); }
-        function smoothScroll(id) { event.preventDefault(); document.getElementById(id).scrollIntoView({behavior: 'smooth', block: 'start'}); }
+        
+        // 觸發折疊邏輯：同時操作列表與按鈕旋轉
+        function toggleSec(type, btn) { 
+            document.getElementById(type + '-list').classList.toggle('collapsed'); 
+            btn.classList.toggle('collapsed');
+        }
+        
+        function smoothScroll(id) { 
+            event.preventDefault(); 
+            document.getElementById(id).scrollIntoView({behavior: 'smooth', block: 'start'}); 
+        }
 
         async function saveData(isArchive = false) {
             if (!isDataReadyToSave) { console.warn("Safety Lock Active"); return; }
             document.getElementById('sync-status').textContent = isArchive ? "狀態: 正在封存..." : "狀態: 同步中...";
             const flatData = [];
-            ['income', 'flex', 'subs', 'annual', 'invest', 'goals'].forEach(cat => systemData[cat].forEach(item => flatData.push({ ...item, category: cat })));
+            
+            // 拍平矩陣
+            ['income', 'flex', 'subs', 'annual', 'invest', 'goals', 'accounts'].forEach(cat => {
+                systemData[cat].forEach(item => flatData.push({ ...item, category: cat }));
+            });
+            
             const payload = { action: isArchive ? "archive" : "sync", data: flatData, theme: systemData.theme, baseCurrency: systemData.baseCurrency };
-
+            
             try {
-                const response = await fetch(GAS_URL, { method: 'POST', headers: { 'Content-Type': 'text/plain;charset=utf-8' }, body: JSON.stringify(payload) });
+                const response = await fetch(GAS_URL, { 
+                    method: 'POST', 
+                    headers: { 'Content-Type': 'text/plain;charset=utf-8' }, 
+                    body: JSON.stringify(payload) 
+                });
                 if (!response.ok) throw new Error("Net Fail");
-                document.getElementById('sync-status').textContent = "狀態: 雲端已同步";
+                document.getElementById('sync-status').textContent = "狀態: 雲端已同步"; 
                 document.getElementById('last-sync-time').textContent = new Date().toLocaleTimeString();
                 localStorage.setItem('workflow_finance_cloud_cache', JSON.stringify(systemData));
             } catch (e) {
-                document.getElementById('sync-status').textContent = "狀態: 同步失敗 (已存快取)";
+                document.getElementById('sync-status').textContent = "狀態: 同步失敗 (已存快取)"; 
                 localStorage.setItem('workflow_finance_data_v4', JSON.stringify(systemData));
             }
         }
@@ -353,114 +383,178 @@
 
             if (localCacheStr) {
                 try {
-                    const parsed = JSON.parse(localCacheStr);
+                    const parsed = JSON.parse(localCacheStr); 
                     const ensureStructure = (arr) => (arr || []).map(item => ({ ...item, note: item.note || '', showNote: item.showNote || false }));
-                    systemData.theme = parsed.theme || 'pink';
+                    
+                    systemData.theme = parsed.theme || 'pink'; 
                     systemData.baseCurrency = parsed.baseCurrency || 'TWD';
-                    systemData.income = ensureStructure(parsed.income); systemData.flex = ensureStructure(parsed.flex || []);
-                    systemData.subs = ensureStructure(parsed.subs); systemData.annual = ensureStructure(parsed.annual || []);
-                    systemData.invest = ensureStructure(parsed.invest); systemData.goals = ensureStructure(parsed.goals);
-                    hasLocalData = true; applyLoadedState();
-                } catch(e) { console.error(e); }
+                    systemData.income = ensureStructure(parsed.income); 
+                    systemData.flex = ensureStructure(parsed.flex || []);
+                    systemData.subs = ensureStructure(parsed.subs); 
+                    systemData.annual = ensureStructure(parsed.annual || []);
+                    systemData.invest = ensureStructure(parsed.invest); 
+                    systemData.goals = ensureStructure(parsed.goals);
+                    systemData.accounts = ensureStructure(parsed.accounts || []);
+                    
+                    hasLocalData = true; 
+                    applyLoadedState();
+                } catch(e) {}
             }
 
             try {
-                const response = await fetch(GAS_URL);
+                const response = await fetch(GAS_URL); 
                 const text = await response.text(); 
                 if (text.includes("<!DOCTYPE html>")) throw new Error("Auth Error");
                 const rows = JSON.parse(text);
                 
-                if (rows && Array.isArray(rows) && rows.length > 0) {
-                    const newData = { theme: systemData.theme, baseCurrency: systemData.baseCurrency, income: [], flex: [], subs: [], annual: [], invest: [], goals: [] };
+                if (rows && Array.isArray(rows)) {
+                    const newData = { theme: systemData.theme, baseCurrency: systemData.baseCurrency, income: [], flex: [], subs: [], annual: [], invest: [], goals: [], accounts: [] };
                     rows.forEach(row => {
                         if (newData[row.category]) {
-                            newData[row.category].push({ id: row.id, name: row.name, note: row.note, amount: parseFloat(row.amount) || 0, currency: row.currency, target: parseFloat(row.target) || 0, saved: parseFloat(row.saved) || 0, months: parseInt(row.months) || 0, date: row.date, showNote: row.showNote === "true" || row.showNote === true });
+                            newData[row.category].push({ 
+                                id: row.id, name: row.name, note: row.note, 
+                                amount: parseFloat(row.amount) || 0, currency: row.currency, 
+                                target: parseFloat(row.target) || 0, saved: parseFloat(row.saved) || 0, 
+                                months: parseInt(row.months) || 0, date: row.date, 
+                                showNote: row.showNote === "true" || row.showNote === true 
+                            });
                         }
                     });
-                    systemData = newData;
-                    applyLoadedState();
+                    systemData = newData; 
+                    applyLoadedState(); 
                     localStorage.setItem('workflow_finance_cloud_cache', JSON.stringify(systemData));
-                    document.getElementById('sync-status').textContent = "狀態: 雲端數據已載入";
+                    document.getElementById('sync-status').textContent = "狀態: 雲端數據已載入"; 
                     document.getElementById('last-sync-time').textContent = new Date().toLocaleTimeString();
                     isDataReadyToSave = true; 
-                } else if (hasLocalData) {
+                } else if (hasLocalData) { 
                     isDataReadyToSave = true; 
-                    document.getElementById('sync-status').textContent = "狀態: 舊資料上傳中...";
-                    saveData();
-                } else {
+                    document.getElementById('sync-status').textContent = "狀態: 舊資料上傳中..."; 
+                    saveData(); 
+                } else { 
                     isDataReadyToSave = true; 
-                    document.getElementById('sync-status').textContent = "狀態: 全新狀態";
+                    document.getElementById('sync-status').textContent = "狀態: 全新狀態"; 
                 }
-            } catch (e) {
+            } catch (e) { 
                 isDataReadyToSave = true; 
-                document.getElementById('sync-status').textContent = "狀態: 離線 (本地模式)";
+                document.getElementById('sync-status').textContent = "狀態: 離線 (本地模式)"; 
             }
         }
 
-        function applyLoadedState() {
-            if(systemData.theme) { themeSelector.value = systemData.theme; if(systemData.theme !== 'pink') document.documentElement.setAttribute('data-theme', systemData.theme); }
-            renderAll();
+        function applyLoadedState() { 
+            if(systemData.theme) { 
+                themeSelector.value = systemData.theme; 
+                if(systemData.theme !== 'pink') document.documentElement.setAttribute('data-theme', systemData.theme); 
+            } 
+            renderAll(); 
         }
 
         function renderAll() {
             document.getElementById('base-currency').value = systemData.baseCurrency;
+            
             const renderList = (containerId, listData, type) => {
-                const container = document.getElementById(containerId); container.innerHTML = '';
+                const container = document.getElementById(containerId); 
+                container.innerHTML = '';
+                
                 listData.forEach(item => {
-                    const row = document.createElement('div'); const noteClass = item.showNote ? 'active' : '';
+                    const row = document.createElement('div'); 
+                    const noteClass = item.showNote ? 'active' : '';
+                    
                     if (type === 'goals') {
                         row.className = 'entry-row goal-mode';
-                        row.innerHTML = `<div class="input-group"><input type="text" class="sys-input" value="${item.name}" onchange="updateData(this, 'name', '${type}', '${item.id}')"><input type="text" class="sys-input note-input ${noteClass}" value="${item.note || ''}" onchange="updateData(this, 'note', '${type}', '${item.id}')"></div><input type="number" class="sys-input" value="${item.target}" oninput="updateData(this, 'target', '${type}', '${item.id}')"><input type="number" class="sys-input" value="${item.saved}" oninput="updateData(this, 'saved', '${type}', '${item.id}')"><input type="number" class="sys-input" value="${item.months}" oninput="updateData(this, 'months', '${type}', '${item.id}')">${createSelectHTML(item.currency, type, item.id)}<div class="action-group"><button class="btn-action btn-icon" onclick="toggleNote('${type}', '${item.id}')">💬</button><button class="btn-action btn-icon" onclick="depositGoal('${item.id}')">✔</button><button class="btn-del" onclick="deleteEntry('${type}', '${item.id}')">×</button></div>`;
+                        row.innerHTML = `<div class="input-group"><input type="text" class="sys-input" value="${item.name}" placeholder="目標名稱" onchange="updateData(this, 'name', '${type}', '${item.id}')"><input type="text" class="sys-input note-input ${noteClass}" value="${item.note || ''}" placeholder="備註..." onchange="updateData(this, 'note', '${type}', '${item.id}')"></div><input type="number" class="sys-input" value="${item.target}" placeholder="總目標額" oninput="updateData(this, 'target', '${type}', '${item.id}')"><input type="number" class="sys-input" value="${item.saved}" placeholder="已存金額" oninput="updateData(this, 'saved', '${type}', '${item.id}')"><input type="number" class="sys-input" value="${item.months}" placeholder="剩餘月數" oninput="updateData(this, 'months', '${type}', '${item.id}')">${createSelectHTML(item.currency, type, item.id)}<div class="action-group"><button class="btn-action btn-icon" onclick="toggleNote('${type}', '${item.id}')">💬</button><button class="btn-action btn-icon" onclick="depositGoal('${item.id}')">✔</button><button class="btn-del" onclick="deleteEntry('${type}', '${item.id}')">×</button></div>`;
                     } else if (type === 'annual') {
                         row.className = 'entry-row annual-mode';
-                        row.innerHTML = `<div class="input-group"><input type="text" class="sys-input" value="${item.name}" onchange="updateData(this, 'name', '${type}', '${item.id}')"><input type="text" class="sys-input note-input ${noteClass}" value="${item.note || ''}" onchange="updateData(this, 'note', '${type}', '${item.id}')"></div><input type="number" class="sys-input" value="${item.amount}" oninput="updateData(this, 'amount', '${type}', '${item.id}')"><input type="date" class="sys-input" value="${item.date || ''}" onchange="updateData(this, 'date', '${type}', '${item.id}')" style="font-size:0.6rem;">${createSelectHTML(item.currency, type, item.id)}<div class="action-group"><button class="btn-action btn-icon" onclick="toggleNote('${type}', '${item.id}')">💬</button><button class="btn-del" onclick="deleteEntry('${type}', '${item.id}')">×</button></div>`;
+                        row.innerHTML = `<div class="input-group"><input type="text" class="sys-input" value="${item.name}" placeholder="項目名稱" onchange="updateData(this, 'name', '${type}', '${item.id}')"><input type="text" class="sys-input note-input ${noteClass}" value="${item.note || ''}" placeholder="備註..." onchange="updateData(this, 'note', '${type}', '${item.id}')"></div><input type="number" class="sys-input" value="${item.amount}" placeholder="年度總額" oninput="updateData(this, 'amount', '${type}', '${item.id}')"><input type="date" class="sys-input" value="${item.date || ''}" onchange="updateData(this, 'date', '${type}', '${item.id}')">${createSelectHTML(item.currency, type, item.id)}<div class="action-group"><button class="btn-action btn-icon" onclick="toggleNote('${type}', '${item.id}')">💬</button><button class="btn-del" onclick="deleteEntry('${type}', '${item.id}')">×</button></div>`;
                     } else {
                         row.className = 'entry-row';
-                        row.innerHTML = `<div class="input-group"><input type="text" class="sys-input" value="${item.name}" onchange="updateData(this, 'name', '${type}', '${item.id}')"><input type="text" class="sys-input note-input ${noteClass}" value="${item.note || ''}" onchange="updateData(this, 'note', '${type}', '${item.id}')"></div><input type="number" class="sys-input" value="${item.amount}" oninput="updateData(this, 'amount', '${type}', '${item.id}')">${createSelectHTML(item.currency, type, item.id)}<div class="action-group"><button class="btn-action btn-icon" onclick="toggleNote('${type}', '${item.id}')">💬</button><button class="btn-del" onclick="deleteEntry('${type}', '${item.id}')">×</button></div>`;
+                        row.innerHTML = `<div class="input-group"><input type="text" class="sys-input" value="${item.name}" placeholder="項目名稱" onchange="updateData(this, 'name', '${type}', '${item.id}')"><input type="text" class="sys-input note-input ${noteClass}" value="${item.note || ''}" placeholder="備註..." onchange="updateData(this, 'note', '${type}', '${item.id}')"></div><input type="number" class="sys-input" value="${item.amount}" placeholder="金額" oninput="updateData(this, 'amount', '${type}', '${item.id}')">${createSelectHTML(item.currency, type, item.id)}<div class="action-group"><button class="btn-action btn-icon" onclick="toggleNote('${type}', '${item.id}')">💬</button><button class="btn-del" onclick="deleteEntry('${type}', '${item.id}')">×</button></div>`;
                     }
                     container.appendChild(row);
                 });
             };
-            ['income', 'flex', 'subs', 'annual', 'invest', 'goals'].forEach(cat => renderList(`${cat}-list`, systemData[cat], cat));
+            
+            ['income', 'flex', 'subs', 'annual', 'invest', 'goals', 'accounts'].forEach(cat => renderList(`${cat}-list`, systemData[cat], cat));
             calculateLogic();
         }
 
         function toggleNote(type, id) { const item = systemData[type].find(i => i.id === id); if(item) { item.showNote = !item.showNote; renderAll(); saveData(); } }
         function depositGoal(id) { const goal = systemData.goals.find(g => g.id === id); if (goal && goal.months > 0) { let needed = Math.max(0, (goal.target - goal.saved) / goal.months); goal.saved = parseFloat((goal.saved + needed).toFixed(2)); goal.months -= 1; renderAll(); saveData(); } }
-        function addEntry(type) { let newItem = { id: generateId(), name: '', note: '', showNote: false, amount: 0, currency: 'TWD' }; if (type === 'goals') newItem = { id: generateId(), name: '', note: '', showNote: false, target: 0, saved: 0, months: 1, currency: 'TWD' }; if (type === 'annual') newItem.date = ''; systemData[type].push(newItem); renderAll(); saveData(); }
-        function deleteEntry(type, id) { systemData[type] = systemData[type].filter(i => i.id !== id); renderAll(); saveData(); }
+        
+        function addEntry(type) { 
+            let newItem = { id: generateId(), name: '', note: '', showNote: false, amount: 0, currency: 'TWD' }; 
+            if (type === 'goals') newItem = { id: generateId(), name: '', note: '', showNote: false, target: 0, saved: 0, months: 1, currency: 'TWD' }; 
+            if (type === 'annual') newItem.date = ''; 
+            systemData[type].push(newItem); 
+            renderAll(); saveData(); 
+        }
+        
+        function deleteEntry(type, id) { 
+            systemData[type] = systemData[type].filter(i => i.id !== id); 
+            renderAll(); saveData(); 
+        }
 
         const sysModal = document.getElementById('sys-modal');
         function requestResetMonthly() { sysModal.classList.add('active'); }
         document.getElementById('modal-btn-cancel').addEventListener('click', () => sysModal.classList.remove('active'));
+        
         document.getElementById('modal-btn-confirm').addEventListener('click', async () => {
             await saveData(true); 
-            systemData.income.forEach(i => i.amount = 0); systemData.flex.forEach(i => i.amount = 0);
-            renderAll(); await saveData(false); sysModal.classList.remove('active');
+            systemData.income.forEach(i => i.amount = 0); 
+            systemData.flex.forEach(i => i.amount = 0);
+            renderAll(); 
+            await saveData(false); 
+            sysModal.classList.remove('active');
         });
 
-        let saveTimeout;
         function updateData(element, field, type, id) {
-            if (element.id === 'base-currency') { systemData.baseCurrency = element.value; calculateLogic(); saveData(); return; }
+            if (element.id === 'base-currency') { 
+                systemData.baseCurrency = element.value; 
+                calculateLogic(); saveData(); return; 
+            }
             const item = systemData[type].find(i => i.id === id);
-            if (item) { if (field === 'currency') item.currency = element.value; else if (field === 'name' || field === 'note' || field === 'date') item[field] = element.value; else item[field] = parseFloat(element.value) || 0; }
-            calculateLogic(); clearTimeout(saveTimeout); saveTimeout = setTimeout(saveData, 1000);
+            if (item) { 
+                if (field === 'currency') item.currency = element.value; 
+                else if (field === 'name' || field === 'note' || field === 'date') item[field] = element.value; 
+                else item[field] = parseFloat(element.value) || 0; 
+            }
+            calculateLogic(); 
+            clearTimeout(saveTimeout); 
+            saveTimeout = setTimeout(saveData, 1000);
         }
 
         function calculateLogic() {
-            const baseCurr = systemData.baseCurrency; const convert = (val, from) => (from === baseCurr) ? val : val * exchangeRates[from][baseCurr];
-            let t = { income: 0, flex: 0, subs: 0, annual: 0, invest: 0, goals: 0 };
-            systemData.income.forEach(i => t.income += convert(i.amount, i.currency)); systemData.flex.forEach(i => t.flex += convert(i.amount, i.currency));
-            systemData.subs.forEach(i => t.subs += convert(i.amount, i.currency)); systemData.annual.forEach(i => t.annual += (convert(i.amount, i.currency) / 12));
-            systemData.invest.forEach(i => t.invest += convert(i.amount, i.currency)); systemData.goals.forEach(i => { let m = i.months > 0 ? i.months : 1; t.goals += convert(Math.max(0, (i.target - i.saved) / m), i.currency); });
+            const baseCurr = systemData.baseCurrency; 
+            const convert = (val, from) => (from === baseCurr) ? val : val * exchangeRates[from][baseCurr];
+            
+            let t = { income: 0, flex: 0, subs: 0, annual: 0, invest: 0, goals: 0, accounts: 0 };
+            
+            systemData.income.forEach(i => t.income += convert(i.amount, i.currency)); 
+            systemData.flex.forEach(i => t.flex += convert(i.amount, i.currency));
+            systemData.subs.forEach(i => t.subs += convert(i.amount, i.currency)); 
+            systemData.annual.forEach(i => t.annual += (convert(i.amount, i.currency) / 12));
+            systemData.invest.forEach(i => t.invest += convert(i.amount, i.currency)); 
+            systemData.goals.forEach(i => { let m = i.months > 0 ? i.months : 1; t.goals += convert(Math.max(0, (i.target - i.saved) / m), i.currency); });
+            systemData.accounts.forEach(i => t.accounts += convert(i.amount, i.currency));
+            
             const fmt = (v) => new Intl.NumberFormat('en-US', { minimumFractionDigits: baseCurr === 'JPY' ? 0 : 2 }).format(v);
-            document.getElementById('sub-income').textContent = `+ ${fmt(t.income)}`; document.getElementById('sub-flex').textContent = `- ${fmt(t.flex)}`;
-            document.getElementById('sub-subs').textContent = `- ${fmt(t.subs)}`; document.getElementById('sub-annual').textContent = `- ${fmt(t.annual)} /月`;
-            document.getElementById('sub-invest').textContent = `- ${fmt(t.invest)}`; document.getElementById('sub-goals').textContent = `- ${fmt(t.goals)} /月`;
+            
+            document.getElementById('sub-income').textContent = `+ ${fmt(t.income)}`; 
+            document.getElementById('sub-flex').textContent = `- ${fmt(t.flex)}`;
+            document.getElementById('sub-subs').textContent = `- ${fmt(t.subs)}`; 
+            document.getElementById('sub-annual').textContent = `- ${fmt(t.annual)} /月`;
+            document.getElementById('sub-invest').textContent = `- ${fmt(t.invest)}`; 
+            document.getElementById('sub-goals').textContent = `- ${fmt(t.goals)} /月`;
+            
             const net = t.income - (t.flex + t.subs + t.annual + t.invest + t.goals);
-            const el = document.getElementById('net-cash'); el.textContent = fmt(net); el.classList.toggle('negative', net < 0);
+            const el = document.getElementById('net-cash'); 
+            el.textContent = fmt(net); 
+            el.classList.toggle('negative', net < 0);
+            
+            // 更新總資產
+            document.getElementById('total-assets').textContent = fmt(t.accounts);
         }
 
+        // 系統點火
         loadData();
     </script>
 </body>
