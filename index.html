@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>WORKFLOW // 財務中樞 v5.7</title>
+    <title>WORKFLOW // 財務中樞 v5.8 Aegis</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;1,300;1,400&family=Inter:wght@300;400&family=Syncopate:wght@400;700&display=swap" rel="stylesheet">
@@ -48,13 +48,12 @@
         .dynamic-list { display: flex; flex-direction: column; gap: 12px; margin-bottom: 10px; }
         .dynamic-list.collapsed { display: none; }
 
-        /* 完美融入主題的狀態按鈕 */
         .btn-status { background: transparent; border: 1px solid var(--border-light); border-radius: 4px; padding: 3px 6px; font-size: 0.6rem; cursor: pointer; transition: 0.3s; white-space: nowrap; font-family: var(--font-body); display: flex; align-items: center; justify-content: center; width: 55px; }
         .btn-status.unpaid { border-color: var(--accent); color: var(--accent); font-weight: bold; }
         .btn-status.paid { background: rgba(var(--text-mute), 0.1); color: var(--text-mute); border-color: transparent; opacity: 0.6; }
 
         .entry-row { display: grid; grid-template-columns: 2fr 1fr 0.8fr auto auto; gap: 8px; align-items: center; animation: fadeIn 0.3s ease-out; }
-        .entry-row.subs-mode { grid-template-columns: 2fr 1fr 1fr 0.8fr auto auto; } /* 修正為與 annual 相同的日期寬度 */
+        .entry-row.subs-mode { grid-template-columns: 2fr 1fr 1fr 0.8fr auto auto; } 
         .entry-row.annual-mode { grid-template-columns: 2fr 1fr 1fr 0.8fr auto auto; }
         .entry-row.goal-mode { grid-template-columns: 1.5fr 1fr 1fr 0.5fr 0.8fr auto auto; }
         .input-group { display: flex; flex-direction: column; gap: 4px; }
@@ -75,9 +74,8 @@
         .net-cash-display { font-family: var(--font-serif); font-size: 3rem; font-style: italic; font-weight: 300; line-height: 1; color: var(--accent); margin: 15px 0 5px 0; font-variant-numeric: tabular-nums; letter-spacing: -1px; transition: color 0.3s; }
         .net-cash-display.negative { color: #ff4c4c; }
         
-        /* 實體餘額膠囊面板 */
-        .actual-balance-box { display: inline-flex; justify-content: space-between; align-items: center; background: rgba(var(--card-bg-rgb), 0.5); border: 1px solid var(--border-light); padding: 10px 20px; border-radius: 25px; margin-top: 15px; font-family: var(--font-display); font-size: 0.65rem; color: var(--text-mute); letter-spacing: 1px; transition: 0.3s; }
-        .actual-balance-box span:last-child { font-family: var(--font-serif); font-size: 1.4rem; font-style: italic; color: var(--text-main); margin-left: 20px; font-weight: bold; }
+        .actual-balance-box { display: inline-flex; justify-content: space-between; align-items: center; background: rgba(var(--card-bg-rgb), 0.5); border: 1px solid var(--border-light); padding: 10px 20px; border-radius: 25px; margin-top: 15px; font-family: var(--font-display); font-size: 0.65rem; color: var(--text-mute); letter-spacing: 1px; transition: 0.3s; width: 100%; max-width: 300px; }
+        .actual-balance-box span:last-child { font-family: var(--font-serif); font-size: 1.4rem; font-style: italic; color: var(--text-main); margin-left: auto; font-weight: bold; }
 
         .currency-rates { font-size: 0.65rem; color: var(--text-mute); margin-top: auto; padding-top: 15px; border-top: 1px solid var(--border-light); font-family: var(--font-display); letter-spacing: 1px; text-align: center; display: flex; flex-direction: column; gap: 5px; }
         .controls-row { display: flex; gap: 10px; justify-content: center; margin-bottom: 10px; }
@@ -213,7 +211,9 @@
     </div>
 
     <script>
+        // 👉 你專屬的 API 位址
         const GAS_URL = "https://script.google.com/macros/s/AKfycbzztgTY5cA_Z2zE_blLiXuNxpuM5p5srVhRSEYZKqeq00v-nu1TNzhdmjO5lJMweV0K/exec";
+        
         let isDataReadyToSave = false; let saveTimeout;
 
         try { const { ipcRenderer } = require('electron'); document.getElementById('btn-minimize').addEventListener('click', () => ipcRenderer.send('minimize-window')); document.getElementById('btn-close').addEventListener('click', () => ipcRenderer.send('close-window')); } catch(e) {}
@@ -228,6 +228,16 @@
         function createSelectHTML(selectedCurrency, type, id) { const currencies = ['TWD', 'JPY', 'USD', 'RMB']; return `<select class="sys-select" onchange="updateData(this, 'currency', '${type}', '${id}')">${currencies.map(c => `<option value="${c}" ${c === selectedCurrency ? 'selected' : ''}>${c}</option>`).join('')}</select>`; }
         function toggleSec(type, btn) { document.getElementById(type + '-list').classList.toggle('collapsed'); btn.classList.toggle('collapsed'); }
         function smoothScroll(id) { event.preventDefault(); document.getElementById(id).scrollIntoView({behavior: 'smooth', block: 'start'}); }
+
+        // [時差矯正器]：負責將 Google 傳來的怪異 UTC 時間轉換回本地 YYYY-MM-DD
+        function parseSafeDate(dateStr) {
+            if (!dateStr) return '';
+            if (typeof dateStr === 'string' && dateStr.includes('T')) {
+                let d = new Date(dateStr); 
+                if (!isNaN(d)) return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+            }
+            return dateStr;
+        }
 
         function togglePaid(type, id) {
             const item = systemData[type].find(i => i.id === id);
@@ -264,7 +274,7 @@
             if (localCacheStr) {
                 try {
                     const parsed = JSON.parse(localCacheStr); 
-                    const ensureStructure = (arr) => (arr || []).map(item => ({ ...item, note: item.note || '', showNote: item.showNote || false, isPaid: item.isPaid || false, date: item.date || item.day || '', lastProcessedMonth: item.lastProcessedMonth || -1, lastProcessedYear: item.lastProcessedYear || -1 }));
+                    const ensureStructure = (arr) => (arr || []).map(item => ({ ...item, note: item.note || '', showNote: item.showNote || false, isPaid: item.isPaid || false, date: parseSafeDate(item.date || item.day || ''), lastProcessedMonth: item.lastProcessedMonth || -1, lastProcessedYear: item.lastProcessedYear || -1 }));
                     systemData.theme = parsed.theme || 'pink'; systemData.baseCurrency = parsed.baseCurrency || 'TWD';
                     systemData.income = ensureStructure(parsed.income); systemData.flex = ensureStructure(parsed.flex);
                     systemData.subs = ensureStructure(parsed.subs); systemData.annual = ensureStructure(parsed.annual);
@@ -285,7 +295,8 @@
                         if (newData[row.category]) {
                             newData[row.category].push({ 
                                 id: row.id, name: row.name, note: row.note, amount: parseFloat(row.amount) || 0, currency: row.currency, 
-                                target: parseFloat(row.target) || 0, saved: parseFloat(row.saved) || 0, months: parseInt(row.months) || 0, date: row.date || row.day || '', 
+                                target: parseFloat(row.target) || 0, saved: parseFloat(row.saved) || 0, months: parseInt(row.months) || 0, 
+                                date: parseSafeDate(row.date || row.day || ''), 
                                 showNote: row.showNote === "true" || row.showNote === true, isPaid: row.isPaid === "true" || row.isPaid === true,
                                 lastProcessedMonth: parseInt(row.lastProcessedMonth) || -1, lastProcessedYear: parseInt(row.lastProcessedYear) || -1
                             });
@@ -298,7 +309,7 @@
             } catch (e) { isDataReadyToSave = true; document.getElementById('sync-status').textContent = "狀態: 離線 (本地模式)"; }
         }
 
-        // 自動扣款判定核心：免疫時差的字串切割法
+        // 自動扣款判定
         function processAutoDeductions() {
             const today = new Date(); const m = today.getMonth() + 1; const y = today.getFullYear(); const d = today.getDate();
             let changed = false;
@@ -433,7 +444,7 @@
             });
             processExp('annual', true);
             
-            // 貨幣格式化：若為台幣或日圓，強制整數不顯示小數點
+            // 貨幣格式化：台幣與日圓強制整數 (移除小數點)
             const fmt = (v) => {
                 let dec = (baseCurr === 'JPY' || baseCurr === 'TWD') ? 0 : 2;
                 return new Intl.NumberFormat('en-US', { minimumFractionDigits: dec, maximumFractionDigits: dec }).format(v);
