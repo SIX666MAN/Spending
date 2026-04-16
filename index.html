@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>WORKFLOW // 財務中樞 v5.8 Aegis</title>
+    <title>WORKFLOW // 財務中樞 v5.9 Dynamic</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;1,300;1,400&family=Inter:wght@300;400&family=Syncopate:wght@400;700&display=swap" rel="stylesheet">
@@ -164,8 +164,8 @@
             </div><div class="dynamic-list" id="goals-list"></div>
 
             <div class="section-title" id="sec-accounts">
-                <div class="left-group"><button class="btn-toggle-sec" onclick="toggleSec('accounts', this)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg></button><span>[07] 口座・資產 (ACCOUNTS)</span></div>
-                <div class="right-group"><span class="subtotal" id="sub-accounts" style="opacity:0.5;">[參照基準]</span><button class="btn-action" onclick="addEntry('accounts')">+ 追加</button></div>
+                <div class="left-group"><button class="btn-toggle-sec" onclick="toggleSec('accounts', this)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg></button><span>[07] 口座・基準錨點 (ACCOUNTS)</span></div>
+                <div class="right-group"><span class="subtotal" id="sub-accounts" style="opacity:0.5;">[僅在結算日更新]</span><button class="btn-action" onclick="addEntry('accounts')">+ 追加</button></div>
             </div><div class="dynamic-list" id="accounts-list"></div>
         </div>
 
@@ -181,7 +181,7 @@
             </div>
 
             <div class="summary-panel" style="border-top: 1px dashed var(--border-light); padding-top: 15px;">
-                <span class="panel-label">月末預估活存總額<br><span>實體帳戶 + 本月未收 - 本月未扣</span></span>
+                <span class="panel-label">月末預估活存總額<br><span>基準錨點 + 本月未收 - 本月未扣</span></span>
                 <div class="net-cash-display" id="projected-balance" style="font-size: 2.6rem; color: var(--text-main);">0.00</div>
                 <div class="actual-balance-box">
                     <span>當前實體口座餘額</span>
@@ -205,7 +205,7 @@
     <div class="modal-overlay" id="sys-modal">
         <div class="modal-box">
             <div class="modal-title">SYSTEM // 確認</div>
-            <div class="modal-msg">確定要執行「月度結算」嗎？<br><br><span style="font-size:0.8rem; color:var(--text-mute);">此操作將清空 [收入] 與 [非固定花銷]。<br>所有項目的扣款狀態將重置為「未扣/未收」，進入下一個月的自動循環。口座餘額將保留以追蹤總資產。</span></div>
+            <div class="modal-msg">確定要執行「月度結算」嗎？<br><br><span style="font-size:0.8rem; color:var(--text-mute);">此操作將清空 [收入] 與 [非固定花銷]，所有扣款狀態將重置為未扣。結算後請手動更新 [07] 口座金額作為下個月的新基準。</span></div>
             <div class="modal-btns"><button class="modal-btn" id="modal-btn-cancel">取消</button><button class="modal-btn confirm" id="modal-btn-confirm">確認執行</button></div>
         </div>
     </div>
@@ -229,13 +229,9 @@
         function toggleSec(type, btn) { document.getElementById(type + '-list').classList.toggle('collapsed'); btn.classList.toggle('collapsed'); }
         function smoothScroll(id) { event.preventDefault(); document.getElementById(id).scrollIntoView({behavior: 'smooth', block: 'start'}); }
 
-        // [時差矯正器]：負責將 Google 傳來的怪異 UTC 時間轉換回本地 YYYY-MM-DD
         function parseSafeDate(dateStr) {
             if (!dateStr) return '';
-            if (typeof dateStr === 'string' && dateStr.includes('T')) {
-                let d = new Date(dateStr); 
-                if (!isNaN(d)) return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
-            }
+            if (typeof dateStr === 'string' && dateStr.includes('T')) { let d = new Date(dateStr); if (!isNaN(d)) return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`; }
             return dateStr;
         }
 
@@ -309,7 +305,6 @@
             } catch (e) { isDataReadyToSave = true; document.getElementById('sync-status').textContent = "狀態: 離線 (本地模式)"; }
         }
 
-        // 自動扣款判定
         function processAutoDeductions() {
             const today = new Date(); const m = today.getMonth() + 1; const y = today.getFullYear(); const d = today.getDate();
             let changed = false;
@@ -399,22 +394,23 @@
             calculateLogic(); clearTimeout(saveTimeout); saveTimeout = setTimeout(saveData, 1000);
         }
 
-        // 核心計算引擎 
+        // 核心計算引擎：動態錨點狀態機
         function calculateLogic() {
             const baseCurr = systemData.baseCurrency; 
             const convert = (val, from) => (from === baseCurr) ? val : val * exchangeRates[from][baseCurr];
             
             let budgetIncome = 0; let budgetExpenses = 0; 
-            let unpaidIncome = 0; let unpaidExpenses = 0; 
-            let accountsTotal = 0;
+            let paidIncome = 0; let unpaidIncome = 0; 
+            let paidExpenses = 0; let unpaidExpenses = 0; 
+            let accountsBaseTotal = 0;
             const currentMonth = new Date().getMonth() + 1;
 
-            systemData.accounts.forEach(i => accountsTotal += convert(i.amount, i.currency));
+            systemData.accounts.forEach(i => accountsBaseTotal += convert(i.amount, i.currency));
 
             systemData.income.forEach(i => {
                 let val = convert(i.amount, i.currency);
                 budgetIncome += val;
-                if (!i.isPaid) unpaidIncome += val;
+                if (i.isPaid) paidIncome += val; else unpaidIncome += val;
             });
 
             const processExp = (cat, isAnnual = false) => {
@@ -427,10 +423,14 @@
                             const parts = i.date.split('-');
                             if(parts.length === 3) dueMonth = parseInt(parts[1], 10);
                         }
-                        if (dueMonth === currentMonth && !i.isPaid) unpaidExpenses += val; 
+                        if (dueMonth === currentMonth) {
+                            if (i.isPaid) paidExpenses += val; 
+                            else unpaidExpenses += val; 
+                        } 
                     } else {
                         budgetExpenses += val;
-                        if (!i.isPaid) unpaidExpenses += val;
+                        if (i.isPaid) paidExpenses += val;
+                        else unpaidExpenses += val;
                     }
                 });
             };
@@ -440,11 +440,10 @@
                 let m = i.months > 0 ? i.months : 1; 
                 let needed = convert(Math.max(0, (i.target - i.saved) / m), i.currency); 
                 budgetExpenses += needed; 
-                if(!i.isPaid) unpaidExpenses += needed;
+                if(i.isPaid) paidExpenses += needed; else unpaidExpenses += needed;
             });
             processExp('annual', true);
             
-            // 貨幣格式化：台幣與日圓強制整數 (移除小數點)
             const fmt = (v) => {
                 let dec = (baseCurr === 'JPY' || baseCurr === 'TWD') ? 0 : 2;
                 return new Intl.NumberFormat('en-US', { minimumFractionDigits: dec, maximumFractionDigits: dec }).format(v);
@@ -457,8 +456,13 @@
             const disposableCash = budgetIncome - budgetExpenses;
             const elCash = document.getElementById('net-cash'); elCash.textContent = fmt(disposableCash); elCash.classList.toggle('negative', disposableCash < 0);
             
-            const projectedBalance = accountsTotal + unpaidIncome - unpaidExpenses;
-            document.getElementById('actual-balance').textContent = fmt(accountsTotal);
+            // ==========================================
+            // 動態錨點狀態機公式 (Dynamic Anchor Equation)
+            // ==========================================
+            const actualBalance = accountsBaseTotal + paidIncome - paidExpenses;
+            const projectedBalance = actualBalance + unpaidIncome - unpaidExpenses;
+            
+            document.getElementById('actual-balance').textContent = fmt(actualBalance);
             document.getElementById('projected-balance').textContent = fmt(projectedBalance);
         }
 
